@@ -23,7 +23,8 @@ endif()
 # Our Project
 
 add_executable(${PROJECT_NAME} src/main.cpp
-        src/snake.cpp)
+        src/snake.cpp
+        src/game.cpp)
 
 #set(raylib_VERBOSE 1)
 target_include_directories(${PROJECT_NAME} PUBLIC include)

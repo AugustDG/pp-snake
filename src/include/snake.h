@@ -1,31 +1,29 @@
 #pragma once
 
+#include "direction.h"
+#include "vector_int.h"
 #include <cstdint>
 #include <vector>
-#include "raylib.h"
-
-enum class Direction {
-    NONE,
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT
-};
 
 class Snake {
 public:
-    Snake(uint32_t length = 1, Vector2 position = Vector2(), Direction direction = Direction::UP);
+  Snake();
+  Snake(uint32_t length, Vector2Int position, Direction direction);
 
-    uint32_t length;
-    Vector2 position;
+  uint32_t length;
+  Vector2Int position;
 
-    Direction direction;
+  Direction direction;
 
-    void render();
+  void render();
 
-    void move(Direction dir = Direction::NONE);
-    void grow();
+  void turn(Direction new_direction);
+  void move();
+  void grow();
+
+  bool hasCollided();
+  void reset(uint32_t length, const Vector2Int &position, Direction direction);
 
 private:
-    std::vector<Vector2> body;
+  std::vector<Vector2Int> body;
 };
