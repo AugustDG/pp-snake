@@ -5,36 +5,55 @@
 #include <settings.h>
 #include <sstream>
 
-void Game::addSnake(const std::shared_ptr<Snake> &snake) { this->snake = snake; }
+void Game::init() {
+  this->snake_one = std::make_shared<Snake>(3, Vector2Int{map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE},
+                                            RIGHT, GREEN, DARKGREEN);
+  this->snake_two = std::make_shared<Snake>(3, Vector2Int{3 * map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE},
+                                            LEFT, BLUE, DARKBLUE);
+}
 
 void Game::update() {
   // we want it static so that if the user pressed a key in a non-moving frame, once the snake moves, it will move in
   // the direction the user pressed
-  static auto new_direction = NONE;
+  static auto new_direction_one = NONE;
+  static auto new_direction_two = NONE;
+
+  if (IsKeyPressed(KEY_D))
+    new_direction_one = RIGHT;
+  else if (IsKeyPressed(KEY_A))
+    new_direction_one = LEFT;
+  else if (IsKeyPressed(KEY_W))
+    new_direction_one = UP;
+  else if (IsKeyPressed(KEY_S))
+    new_direction_one = DOWN;
 
   if (IsKeyPressed(KEY_RIGHT))
-    new_direction = RIGHT;
+    new_direction_two = RIGHT;
   else if (IsKeyPressed(KEY_LEFT))
-    new_direction = LEFT;
+    new_direction_two = LEFT;
   else if (IsKeyPressed(KEY_UP))
-    new_direction = UP;
+    new_direction_two = UP;
   else if (IsKeyPressed(KEY_DOWN))
-    new_direction = DOWN;
+    new_direction_two = DOWN;
 
   if (IsKeyPressed(KEY_ENTER) && is_game_over) {
-    snake->reset(3, Vector2Int{map_size.x / 2 / CELL_SIZE, map_size.y / 2 / CELL_SIZE}, RIGHT);
+    snake_one->reset(3, Vector2Int{map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE}, RIGHT);
+    snake_two->reset(3, Vector2Int{3 * map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE}, RIGHT);
     apples.clear();
 
-    score = 0;
+    score_one = 0;
+    score_two = 0;
     time = 0;
     move_time = BASE_MOVE_TIME;
     is_game_over = false;
   }
 
   if (time % move_time == 0) {
-    updateSnake(new_direction);
+    updateSnake(new_direction_one, false);
+    updateSnake(new_direction_two, true);
     updateGameOver();
-    new_direction = NONE;
+    new_direction_one = NONE;
+    new_direction_two = NONE;
   }
 
   if (time % (move_time * 15) == 0) {
@@ -60,14 +79,19 @@ void Game::render() const {
   }
 
   std::stringstream ss;
-  ss << "Score: " << score;
-
+  ss << "Score: " << score_one;
   DrawText(ss.str().c_str(), 10, 10, 20, BLACK);
 
-  snake->render();
+  ss.str("");
+  ss << "Score: " << score_two;
+  DrawText(ss.str().c_str(), 10, 40, 20, BLACK);
+
+  snake_one->render();
+  snake_two->render();
 }
 
-void Game::updateSnake(const Direction new_direction) {
+void Game::updateSnake(const Direction new_direction, const bool is_two) {
+  const auto snake = is_two ? snake_two : snake_one;
 
   snake->turn(new_direction);
   snake->move();
@@ -76,7 +100,11 @@ void Game::updateSnake(const Direction new_direction) {
   auto it = apples.begin();
   while (it != apples.end()) {
     if (snake->position == *it) {
-      score++;
+      if (is_two)
+        score_two++;
+      else
+        score_one++;
+
       snake->grow();
 
       apples.erase(it);
@@ -90,21 +118,22 @@ void Game::updateSnake(const Direction new_direction) {
 
 void Game::updateGameOver() {
   // self-collision
-  if (snake->hasCollided()) {
+  if (snake_two->hasCollidedWithItself() || snake_one->hasCollidedWithItself() ||
+      snake_one->hasCollidedWithSnake(snake_two)) {
     is_game_over = true;
   }
 
   // wall collision
-  if (snake->position.x < 0 || snake->position.x >= map_size.x / CELL_SIZE || snake->position.y < 0 ||
-      snake->position.y >= map_size.y / CELL_SIZE) {
+  if (snake_one->position.x < 0 || snake_one->position.x >= map_size.x / CELL_SIZE || snake_one->position.y < 0 ||
+      snake_one->position.y >= map_size.y / CELL_SIZE || snake_two->position.x < 0 ||
+      snake_two->position.x >= map_size.x / CELL_SIZE || snake_two->position.y < 0 ||
+      snake_two->position.y >= map_size.y / CELL_SIZE) {
     is_game_over = true;
   }
 }
 
 void Game::updateMoveTime() {
-  if ((move_time == 30 && time > 10) || (move_time == 25 && time > 20)) {
-    move_time -= 5;
-  }
+  move_time = BASE_MOVE_TIME - (score_one + score_two) / 4 - time / 600;
 }
 
 void Game::spawnApples() {

@@ -3,12 +3,16 @@
 #include "direction.h"
 #include "vector_int.h"
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 class Snake {
 public:
   Snake();
-  Snake(uint32_t length, Vector2Int position, Direction direction);
+  Snake(uint32_t length, Vector2Int position, Direction direction, Color body_color, Color tail_color);
+
+  Color body_color;
+  Color tail_color;
 
   uint32_t length;
   Vector2Int position;
@@ -21,7 +25,8 @@ public:
   void move();
   void grow();
 
-  bool hasCollided();
+  bool hasCollidedWithItself();
+  bool hasCollidedWithSnake(const std::shared_ptr<Snake> &other) const;
   void reset(uint32_t length, const Vector2Int &position, Direction direction);
 
 private:

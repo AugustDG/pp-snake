@@ -2,14 +2,16 @@
 
 #include "raylib.h"
 
+#include <memory>
 #include <settings.h>
 
-Snake::Snake() : Snake(1, Vector2Int{10, 10}, RIGHT) {}
+Snake::Snake() : Snake(1, Vector2Int{10, 10}, RIGHT, GREEN, DARKGREEN) {}
 
-Snake::Snake(const uint32_t length, const Vector2Int position, const Direction direction)
-    : length(length), position(position), direction(direction) {
+Snake::Snake(const uint32_t length, const Vector2Int position, const Direction direction, const Color body_color,
+             const Color tail_color)
+    : body_color(body_color), tail_color(tail_color), length(length), position(position), direction(direction) {
   body = std::vector(length, position);
-};
+}
 
 void Snake::turn(Direction new_direction) {
   if (new_direction == NONE)
@@ -53,10 +55,24 @@ void Snake::grow() {
 
   body.emplace_back(body.back());
 }
-bool Snake::hasCollided() {
+
+bool Snake::hasCollidedWithItself() {
   auto it = body.begin();
   while (it != body.end()) {
     if (it != body.begin() && *it == body.front()) {
+      return true;
+    }
+
+    ++it;
+  }
+
+  return false;
+}
+
+bool Snake::hasCollidedWithSnake(const std::shared_ptr<Snake> & other) const {
+  auto it = other->body.begin();
+  while (it != other->body.end()) {
+    if (*it == body.front()) {
       return true;
     }
 
@@ -81,7 +97,7 @@ void Snake::render() {
 
     // head
     if (it == body.begin()) {
-      DrawRectangle(cell_x, cell_y, CELL_SIZE, CELL_SIZE, GREEN);
+      DrawRectangle(cell_x, cell_y, CELL_SIZE, CELL_SIZE, body_color);
 
       auto eyes_l_x = cell_x;
       auto eyes_l_y = cell_y;
@@ -141,21 +157,21 @@ void Snake::render() {
       default:;
       }
 
-      DrawTriangle(static_cast<Vector2>(v1), static_cast<Vector2>(v2), static_cast<Vector2>(v3), DARKGREEN);
+      DrawTriangle(static_cast<Vector2>(v1), static_cast<Vector2>(v2), static_cast<Vector2>(v3), tail_color);
     } else if (it == body.end() - 2) {
       // we calculate the direction of the tail relative to the before last cell, to correctly place the gradient
       if (const Direction d1 = relativeDirection(*it, *(it + 1)); d1 > DOWN)
-        DrawRectangleGradientH(cell_x, cell_y, CELL_SIZE, CELL_SIZE, d1 == LEFT ? DARKGREEN : GREEN,
-                               d1 == LEFT ? GREEN : DARKGREEN);
+        DrawRectangleGradientH(cell_x, cell_y, CELL_SIZE, CELL_SIZE, d1 == LEFT ? tail_color : body_color,
+                               d1 == LEFT ? body_color : tail_color);
       else
-        DrawRectangleGradientV(cell_x, cell_y, CELL_SIZE, CELL_SIZE, d1 == UP ? DARKGREEN : GREEN,
-                               d1 == UP ? GREEN : DARKGREEN);
+        DrawRectangleGradientV(cell_x, cell_y, CELL_SIZE, CELL_SIZE, d1 == UP ? tail_color : body_color,
+                               d1 == UP ? tail_color : body_color);
 
       // how would you make it so that the gradient is always in the direction of the tail & the body?
     }
     // body
     else {
-      DrawRectangle(cell_x, cell_y, CELL_SIZE, CELL_SIZE, GREEN);
+      DrawRectangle(cell_x, cell_y, CELL_SIZE, CELL_SIZE, body_color);
     }
 
     ++it;
