@@ -9,7 +9,7 @@
 class Snake {
 public:
   Snake();
-  Snake(uint32_t length, Vector2Int position, Direction direction, Color body_color, Color tail_color);
+  Snake(uint32_t length, const Vector2Int& position, Direction direction, const Color& body_color, const Color& tail_color);
 
   Color body_color;
   Color tail_color;
@@ -25,8 +25,9 @@ public:
   void move();
   void grow();
 
-  bool hasCollidedWithItself();
+  bool hasCollidedWithItself() const;
   bool hasCollidedWithSnake(const std::shared_ptr<Snake> &other) const;
+
   void reset(uint32_t length, const Vector2Int &position, Direction direction);
 
 private:

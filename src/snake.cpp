@@ -6,14 +6,12 @@
 #include <settings.h>
 
 Snake::Snake() : Snake(1, Vector2Int{10, 10}, RIGHT, GREEN, DARKGREEN) {}
-
-Snake::Snake(const uint32_t length, const Vector2Int position, const Direction direction, const Color body_color,
-             const Color tail_color)
-    : body_color(body_color), tail_color(tail_color), length(length), position(position), direction(direction) {
+Snake::Snake(const uint32_t length, const Vector2Int &position, const Direction direction, const Color &body_color,
+             const Color &tail_color) : body_color(body_color), tail_color(tail_color), length(length), position(position), direction(direction) {
   body = std::vector(length, position);
 }
 
-void Snake::turn(Direction new_direction) {
+void Snake::turn(const Direction new_direction) {
   if (new_direction == NONE)
     return;
 
@@ -53,10 +51,12 @@ void Snake::move() {
 void Snake::grow() {
   length++;
 
-  body.emplace_back(body.back());
+  const Vector2Int& last = body.back();
+
+  body.emplace_back(last.x, last.y);
 }
 
-bool Snake::hasCollidedWithItself() {
+bool Snake::hasCollidedWithItself() const {
   auto it = body.begin();
   while (it != body.end()) {
     if (it != body.begin() && *it == body.front()) {
@@ -82,11 +82,13 @@ bool Snake::hasCollidedWithSnake(const std::shared_ptr<Snake> & other) const {
   return false;
 }
 
-void Snake::reset(uint32_t length, const Vector2Int& position, Direction direction) {
+void Snake::reset(const uint32_t length, const Vector2Int& position, const Direction direction) {
   this->length = length;
   this->position = position;
   this->direction = direction;
-  body = std::vector(length, position);
+
+  body.clear();
+  body.resize(length, position);
 }
 
 void Snake::render() {
@@ -165,7 +167,7 @@ void Snake::render() {
                                d1 == LEFT ? body_color : tail_color);
       else
         DrawRectangleGradientV(cell_x, cell_y, CELL_SIZE, CELL_SIZE, d1 == UP ? tail_color : body_color,
-                               d1 == UP ? tail_color : body_color);
+                               d1 == UP ? body_color : tail_color);
 
       // how would you make it so that the gradient is always in the direction of the tail & the body?
     }

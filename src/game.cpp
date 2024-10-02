@@ -6,9 +6,10 @@
 #include <sstream>
 
 void Game::init() {
-  this->snake_one = std::make_shared<Snake>(3, Vector2Int{map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE},
-                                            RIGHT, GREEN, DARKGREEN);
-  this->snake_two = std::make_shared<Snake>(3, Vector2Int{3 * map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE},
+  this->snake_one = std::make_shared<Snake>(
+      STARTING_SNAKE_SIZE, Vector2Int{viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE}, RIGHT, GREEN, DARKGREEN);
+  this->snake_two = std::make_shared<Snake>(STARTING_SNAKE_SIZE,
+                                            Vector2Int{3 * viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE},
                                             LEFT, BLUE, DARKBLUE);
 }
 
@@ -37,15 +38,14 @@ void Game::update() {
     new_direction_two = DOWN;
 
   if (IsKeyPressed(KEY_ENTER) && is_game_over) {
-    snake_one->reset(3, Vector2Int{map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE}, RIGHT);
-    snake_two->reset(3, Vector2Int{3 * map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE}, RIGHT);
+    snake_one->reset(3, Vector2Int{viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE}, RIGHT);
+    snake_two->reset(3, Vector2Int{3 * viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE}, RIGHT);
     apples.clear();
 
-    score_one = 0;
-    score_two = 0;
     time = 0;
-    move_time = BASE_MOVE_TIME;
     is_game_over = false;
+
+    updateMoveTime();
   }
 
   if (time % move_time == 0) {
@@ -56,6 +56,7 @@ void Game::update() {
     new_direction_two = NONE;
   }
 
+  // apples spawn faster as the game progresses
   if (time % (move_time * 15) == 0) {
     spawnApples();
   }
@@ -66,28 +67,63 @@ void Game::update() {
 }
 
 void Game::render() const {
+  std::stringstream ss;
+
+  // Game Over
   if (is_game_over) {
-    DrawText("Game Over", map_size.x / 2 - 50, map_size.y / 2 - 10, 20, BLACK);
-    DrawText("Press Enter to restart", map_size.x / 2 - 100, map_size.y / 2 + 10, 20, BLACK);
+    ss << "P1: " << getScore(false) << ", P2: " << getScore(true);
+
+    const std::string game_over_text = "Game Over";
+    const std::string score_text = ss.str();
+    const std::string restart_text = "Press Enter to restart";
+
+    int centering_offset = MeasureText(game_over_text.c_str(), 20) / 2;
+
+    DrawText(game_over_text.c_str(), viewport_size.x / 2 - centering_offset, viewport_size.y / 2 - 20, 20, BLACK);
+    centering_offset = MeasureText(score_text.c_str(), 20) / 2;
+    DrawText(score_text.c_str(), viewport_size.x / 2 - centering_offset, viewport_size.y / 2, 20, BLACK);
+    centering_offset = MeasureText(restart_text.c_str(), 20) / 2;
+    DrawText(restart_text.c_str(), viewport_size.x / 2 - centering_offset, viewport_size.y / 2 + 20, 20, BLACK);
+
     return;
   }
 
-  DrawRectangleLines(0, 0, map_size.x, map_size.y, BLACK);
+  // Map Grid
+  for (int i = 0; i <= viewport_size.x / CELL_SIZE; i++) {
+    DrawLine(i * CELL_SIZE, 0, i * CELL_SIZE, viewport_size.y, LIGHTGRAY);
+  }
 
+  for (int i = 0; i <= viewport_size.y / CELL_SIZE; i++) {
+    DrawLine(0, i * CELL_SIZE, viewport_size.x, i * CELL_SIZE, LIGHTGRAY);
+  }
+
+  DrawRectangleLines(0, 0, viewport_size.x, viewport_size.y, BLACK);
+
+  // Apples
   for (const auto [x, y] : apples) {
     DrawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, RED);
   }
 
-  std::stringstream ss;
-  ss << "Score: " << score_one;
-  DrawText(ss.str().c_str(), 10, 10, 20, BLACK);
+  // Score
+  ss.str("");
+  ss << "P1: " << getScore(false);
+  DrawText(ss.str().c_str(), 10, viewport_size.y - 40, 30, BLACK);
 
   ss.str("");
-  ss << "Score: " << score_two;
-  DrawText(ss.str().c_str(), 10, 40, 20, BLACK);
+  ss << "P2: " << getScore(true);
 
+  // Draws P2's score "justified" to the right
+  const std::string score_text = ss.str();
+  const int score_text_size = MeasureText(score_text.c_str(), 30);
+  DrawText(ss.str().c_str(), viewport_size.x - score_text_size - 10, viewport_size.y - 40, 30, BLACK);
+
+  // Snakes
   snake_one->render();
   snake_two->render();
+}
+
+uint64_t Game::getScore(const bool is_two) const {
+  return is_two ? snake_two->length - STARTING_SNAKE_SIZE : snake_one->length - STARTING_SNAKE_SIZE;
 }
 
 void Game::updateSnake(const Direction new_direction, const bool is_two) {
@@ -100,11 +136,6 @@ void Game::updateSnake(const Direction new_direction, const bool is_two) {
   auto it = apples.begin();
   while (it != apples.end()) {
     if (snake->position == *it) {
-      if (is_two)
-        score_two++;
-      else
-        score_one++;
-
       snake->grow();
 
       apples.erase(it);
@@ -124,23 +155,21 @@ void Game::updateGameOver() {
   }
 
   // wall collision
-  if (snake_one->position.x < 0 || snake_one->position.x >= map_size.x / CELL_SIZE || snake_one->position.y < 0 ||
-      snake_one->position.y >= map_size.y / CELL_SIZE || snake_two->position.x < 0 ||
-      snake_two->position.x >= map_size.x / CELL_SIZE || snake_two->position.y < 0 ||
-      snake_two->position.y >= map_size.y / CELL_SIZE) {
+  if (snake_one->position.x < 0 || snake_one->position.x >= viewport_size.x / CELL_SIZE || snake_one->position.y < 0 ||
+      snake_one->position.y >= viewport_size.y / CELL_SIZE || snake_two->position.x < 0 ||
+      snake_two->position.x >= viewport_size.x / CELL_SIZE || snake_two->position.y < 0 ||
+      snake_two->position.y >= viewport_size.y / CELL_SIZE) {
     is_game_over = true;
   }
 }
 
-void Game::updateMoveTime() {
-  move_time = BASE_MOVE_TIME - (score_one + score_two) / 4 - time / 600;
-}
+void Game::updateMoveTime() { move_time = BASE_MOVE_TIME - (snake_one->length + snake_two->length) / 4 - time / 600; }
 
 void Game::spawnApples() {
   std::random_device rd;
   std::mt19937 rng(rd());
-  std::uniform_int_distribution x_dist(0, (map_size.x - 1) / CELL_SIZE);
-  std::uniform_int_distribution y_dist(0, (map_size.y - 1) / CELL_SIZE);
+  std::uniform_int_distribution x_dist(0, (viewport_size.x - 1) / CELL_SIZE);
+  std::uniform_int_distribution y_dist(0, (viewport_size.y - 1) / CELL_SIZE);
 
   auto apple_pos = Vector2Int(x_dist(rng), y_dist(rng));
 

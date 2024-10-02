@@ -10,19 +10,19 @@ public:
   uint64_t time;
   uint32_t move_time;
 
-  uint64_t score_one;
-  uint64_t score_two;
   bool is_game_over = false;
 
-  const Vector2Int map_size;
+  const Vector2Int viewport_size;
 
   explicit Game(const uint32_t base_move_time, const Vector2Int initial_map_size)
-      : time(0), move_time(base_move_time), score_one(0), score_two(0), map_size(initial_map_size) {}
+      : time(0), move_time(base_move_time), viewport_size(initial_map_size) {}
 
   void init();
 
   void update();
   void render() const;
+
+  uint64_t getScore(bool is_two) const;
 
 private:
   std::shared_ptr<Snake> snake_one;
@@ -34,4 +34,5 @@ private:
   void updateGameOver();
 
   void spawnApples();
+  bool hasSnakeEatenApple(const std::shared_ptr<Snake>& snake);
 };
