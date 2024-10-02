@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.11) # FetchContent is available in 3.11+
 project(pp_snake)
+set(CMAKE_CXX_STANDARD 17)
 
 # Dependencies
 set(RAYLIB_VERSION 5.0)

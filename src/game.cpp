@@ -41,7 +41,7 @@ void Game::update() {
 
   if (IsKeyPressed(KEY_ENTER) && is_game_over) {
     snake_one->reset(3, Vector2Int{viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE}, RIGHT);
-    snake_two->reset(3, Vector2Int{3 * viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE}, RIGHT);
+    snake_two->reset(3, Vector2Int{3 * viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE}, LEFT);
     apples.clear();
 
     time = 0;
@@ -136,7 +136,8 @@ uint64_t Game::getScore(const bool is_two) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const Game &game) {
-  os << "GO:" << game.is_game_over << ",T:" << game.time << ",MT:" << game.move_time << ",LA:" << game.apples.size() << std::endl;
+  os << "GO:" << game.is_game_over << ",T:" << game.time << ",MT:" << game.move_time << ",LA:" << game.apples.size()
+     << std::endl;
   os << "A" << std::endl;
 
   for (auto &&apple : game.apples) {
