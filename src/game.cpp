@@ -2,15 +2,17 @@
 
 #include "raylib.h"
 #include <random>
+#include <saving.h>
 #include <settings.h>
 #include <sstream>
 
-void Game::init() {
+void Game::createSnakes() {
   this->snake_one = std::make_shared<Snake>(
-      STARTING_SNAKE_SIZE, Vector2Int{viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE}, RIGHT, GREEN, DARKGREEN);
-  this->snake_two = std::make_shared<Snake>(STARTING_SNAKE_SIZE,
-                                            Vector2Int{3 * viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE},
-                                            LEFT, BLUE, DARKBLUE);
+      STARTING_SNAKE_SIZE, Vector2Int{viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE}, RIGHT, GREEN,
+      DARKGREEN);
+  this->snake_two = std::make_shared<Snake>(
+      STARTING_SNAKE_SIZE, Vector2Int{3 * viewport_size.x / 4 / CELL_SIZE, viewport_size.y / 2 / CELL_SIZE}, LEFT, BLUE,
+      DARKBLUE);
 }
 
 void Game::update() {
@@ -46,19 +48,26 @@ void Game::update() {
     is_game_over = false;
 
     updateMoveTime();
+
+    GameSaver::getInstance().saveGame(SAVE_GAME_FILENAME, *this);
   }
 
   if (time % move_time == 0) {
     updateSnake(new_direction_one, false);
     updateSnake(new_direction_two, true);
     updateGameOver();
+
     new_direction_one = NONE;
     new_direction_two = NONE;
+
+    GameSaver::getInstance().saveGame(SAVE_GAME_FILENAME, *this);
   }
 
   // apples spawn faster as the game progresses
   if (time % (move_time * 15) == 0) {
     spawnApples();
+
+    GameSaver::getInstance().saveGame(SAVE_GAME_FILENAME, *this);
   }
 
   updateMoveTime();
@@ -124,6 +133,64 @@ void Game::render() const {
 
 uint64_t Game::getScore(const bool is_two) const {
   return is_two ? snake_two->length - STARTING_SNAKE_SIZE : snake_one->length - STARTING_SNAKE_SIZE;
+}
+
+std::ostream &operator<<(std::ostream &os, const Game &game) {
+  os << "GO:" << game.is_game_over << ",T:" << game.time << ",MT:" << game.move_time << ",LA:" << game.apples.size() << std::endl;
+  os << "A" << std::endl;
+
+  for (auto &&apple : game.apples) {
+    os << " a:" << apple.x << "," << apple.y << std::endl;
+  }
+
+  os << "S1" << std::endl;
+  os << *game.snake_one;
+  os << "S2" << std::endl;
+  os << *game.snake_two;
+
+  return os;
+}
+
+std::istream &operator>>(std::istream &is, Game &game) {
+  std::string line;
+  std::getline(is, line);
+
+  std::istringstream ss(line);
+
+  // Read game over status, time, move time, and number of apples
+  while (std::getline(ss, line, ',')) {
+    if (line.substr(0, 2) == "GO") {
+      game.is_game_over = std::stoi(line.substr(3));
+    } else if (line.substr(0, 1) == "T") {
+      game.time = std::stoi(line.substr(2));
+    } else if (line.substr(0, 2) == "MT") {
+      game.move_time = std::stoi(line.substr(3));
+    } else if (line.substr(0, 2) == "LA") {
+      const int num_apples = std::stoi(line.substr(3));
+
+      std::getline(is, line); // Skip "A" line
+
+      game.apples.clear();
+      for (int i = 0; i < num_apples; ++i) {
+        std::getline(is, line);
+        std::istringstream apple_ss(line.substr(3));
+        int x, y;
+        char comma;
+        apple_ss >> x >> comma >> y;
+        game.apples.emplace_back(x, y);
+      }
+    }
+  }
+
+  game.createSnakes();
+
+  // Read snakes
+  std::getline(is, line); // Skip "S1" line
+  is >> *game.snake_one;
+  std::getline(is, line); // Skip "S2" line
+  is >> *game.snake_two;
+
+  return is;
 }
 
 void Game::updateSnake(const Direction new_direction, const bool is_two) {

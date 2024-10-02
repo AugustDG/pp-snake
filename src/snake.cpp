@@ -3,11 +3,15 @@
 #include "raylib.h"
 
 #include <memory>
+#include <ostream>
 #include <settings.h>
+#include <sstream>
 
-Snake::Snake() : Snake(1, Vector2Int{10, 10}, RIGHT, GREEN, DARKGREEN) {}
+Snake::Snake() : Snake(0, Vector2Int{10, 10}, RIGHT, GREEN, DARKGREEN) {}
+
 Snake::Snake(const uint32_t length, const Vector2Int &position, const Direction direction, const Color &body_color,
-             const Color &tail_color) : body_color(body_color), tail_color(tail_color), length(length), position(position), direction(direction) {
+             const Color &tail_color)
+    : body_color(body_color), tail_color(tail_color), length(length), position(position), direction(direction) {
   body = std::vector(length, position);
 }
 
@@ -51,7 +55,7 @@ void Snake::move() {
 void Snake::grow() {
   length++;
 
-  const Vector2Int& last = body.back();
+  const Vector2Int &last = body.back();
 
   body.emplace_back(last.x, last.y);
 }
@@ -69,7 +73,7 @@ bool Snake::hasCollidedWithItself() const {
   return false;
 }
 
-bool Snake::hasCollidedWithSnake(const std::shared_ptr<Snake> & other) const {
+bool Snake::hasCollidedWithSnake(const std::shared_ptr<Snake> &other) const {
   auto it = other->body.begin();
   while (it != other->body.end()) {
     if (*it == body.front()) {
@@ -82,13 +86,66 @@ bool Snake::hasCollidedWithSnake(const std::shared_ptr<Snake> & other) const {
   return false;
 }
 
-void Snake::reset(const uint32_t length, const Vector2Int& position, const Direction direction) {
+void Snake::reset(const uint32_t length, const Vector2Int &position, const Direction direction) {
   this->length = length;
   this->position = position;
   this->direction = direction;
 
   body.clear();
   body.resize(length, position);
+}
+
+std::ostream &operator<<(std::ostream &os, const Snake &snake) {
+  os << "L:" << snake.length << ",D:" << snake.direction << std::endl;
+  os << "B" << std::endl;
+
+  for (auto &&cell : snake.body) {
+    os << " b:" << cell.x << "," << cell.y << std::endl;
+  }
+
+  return os;
+}
+
+std::istream &operator>>(std::istream &is, Snake &snake) {
+  std::string line;
+  std::getline(is, line);
+
+  std::istringstream ss(line);
+
+  // Read length and direction
+  while (std::getline(ss, line, ':')) {
+    if (line == "L") {
+      std::getline(ss, line, ',');
+      snake.length = std::stoi(line);
+    } else if (line == "D") {
+      std::getline(ss, line, ',');
+      snake.direction = static_cast<Direction>(std::stoi(line));
+    }
+  }
+
+  // Read body positions
+  std::getline(is, line); // Skip "B" line
+  snake.body.clear();
+  for (uint32_t i = 0; i < snake.length; ++i) {
+    std::getline(is, line);
+    ss = std::istringstream(line);
+
+    // Skip " b:"
+    ss.seekg(3);
+
+    std::string token;
+    std::getline(ss, token, ',');
+    int x = std::stoi(token);
+
+    std::getline(ss, token, ',');
+    int y = std::stoi(token);
+
+    snake.body.emplace_back(x, y);
+  }
+
+  snake.position = snake.body.front();
+
+  return is;
 }
 
 void Snake::render() {

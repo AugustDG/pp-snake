@@ -12,17 +12,20 @@ public:
 
   bool is_game_over = false;
 
-  const Vector2Int viewport_size;
+  Vector2Int viewport_size;
 
   explicit Game(const uint32_t base_move_time, const Vector2Int initial_map_size)
       : time(0), move_time(base_move_time), viewport_size(initial_map_size) {}
 
-  void init();
+  void createSnakes();
 
   void update();
   void render() const;
 
   uint64_t getScore(bool is_two) const;
+
+  friend std::ostream& operator<<(std::ostream& os, const Game& game);
+  friend std::istream& operator>>(std::istream& is, Game& game);
 
 private:
   std::shared_ptr<Snake> snake_one;

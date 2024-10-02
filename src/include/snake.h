@@ -30,6 +30,9 @@ public:
 
   void reset(uint32_t length, const Vector2Int &position, Direction direction);
 
+  friend std::ostream& operator<<(std::ostream& os, const Snake& snake);
+  friend std::istream& operator>>(std::istream& is, Snake& snake);
+
 private:
   std::vector<Vector2Int> body;
 };
