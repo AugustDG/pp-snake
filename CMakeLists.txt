@@ -22,10 +22,7 @@ endif()
 
 # Our Project
 
-add_executable(
-         ${PROJECT_NAME} src/main.cpp
-        src/ball.cpp
-        )
+add_executable(${PROJECT_NAME} src/main.cpp)
 
 #set(raylib_VERBOSE 1)
 target_include_directories(${PROJECT_NAME} PUBLIC include)
