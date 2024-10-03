@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vector_int.h"
+#include "vector_int.hpp"
 
 enum Direction { NONE = 0b100, UP = 0b00, DOWN = 0b01, LEFT = 0b10, RIGHT = 0b11 };
 

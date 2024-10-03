@@ -1,6 +1,6 @@
 #pragma once
-#include "snake.h"
-#include "vector_int.h"
+#include "snake.hpp"
+#include "vector_int.hpp"
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -17,7 +17,8 @@ public:
   const Vector2Int map_size;
 
   explicit Game(const uint32_t base_move_time, const Vector2Int initial_map_size)
-      : time(0), move_time(base_move_time), score_one(0), score_two(0), map_size(initial_map_size) {}
+    : time(0), move_time(base_move_time), score_one(0), score_two(0), map_size(initial_map_size) {
+  }
 
   void init();
 

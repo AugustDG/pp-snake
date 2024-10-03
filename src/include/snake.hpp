@@ -1,7 +1,7 @@
 #pragma once
 
-#include "direction.h"
-#include "vector_int.h"
+#include "direction.hpp"
+#include "vector_int.hpp"
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -26,8 +26,8 @@ public:
   void grow();
 
   bool hasCollidedWithItself();
-  bool hasCollidedWithSnake(const std::shared_ptr<Snake> &other) const;
-  void reset(uint32_t length, const Vector2Int &position, Direction direction);
+  bool hasCollidedWithSnake(const std::shared_ptr<Snake>& other) const;
+  void reset(uint32_t length, const Vector2Int& position, Direction direction);
 
 private:
   std::vector<Vector2Int> body;

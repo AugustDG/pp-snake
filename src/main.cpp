@@ -1,9 +1,9 @@
 #include "raylib.h"
 
-#include "settings.h"
-#include "snake.h"
+#include "settings.hpp"
+#include "snake.hpp"
 
-#include <game.h>
+#include <game.hpp>
 #include <memory>
 
 int main() {

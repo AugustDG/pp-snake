@@ -1,15 +1,15 @@
-#include "game.h"
+#include "game.hpp"
 
 #include "raylib.h"
 #include <random>
-#include <settings.h>
+#include <settings.hpp>
 #include <sstream>
 
 void Game::init() {
-  this->snake_one = std::make_shared<Snake>(3, Vector2Int{map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE},
-                                            RIGHT, GREEN, DARKGREEN);
-  this->snake_two = std::make_shared<Snake>(3, Vector2Int{3 * map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE},
-                                            LEFT, BLUE, DARKBLUE);
+  this->snake_one = std::make_shared<Snake>(3, Vector2Int{ map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE },
+    RIGHT, GREEN, DARKGREEN);
+  this->snake_two = std::make_shared<Snake>(3, Vector2Int{ 3 * map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE },
+    LEFT, BLUE, DARKBLUE);
 }
 
 void Game::update() {
@@ -37,8 +37,8 @@ void Game::update() {
     new_direction_two = DOWN;
 
   if (IsKeyPressed(KEY_ENTER) && is_game_over) {
-    snake_one->reset(3, Vector2Int{map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE}, RIGHT);
-    snake_two->reset(3, Vector2Int{3 * map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE}, RIGHT);
+    snake_one->reset(3, Vector2Int{ map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE }, RIGHT);
+    snake_two->reset(3, Vector2Int{ 3 * map_size.x / 4 / CELL_SIZE, map_size.y / 2 / CELL_SIZE }, RIGHT);
     apples.clear();
 
     score_one = 0;
@@ -119,15 +119,15 @@ void Game::updateSnake(const Direction new_direction, const bool is_two) {
 void Game::updateGameOver() {
   // self-collision
   if (snake_two->hasCollidedWithItself() || snake_one->hasCollidedWithItself() ||
-      snake_one->hasCollidedWithSnake(snake_two)) {
+    snake_one->hasCollidedWithSnake(snake_two)) {
     is_game_over = true;
   }
 
   // wall collision
   if (snake_one->position.x < 0 || snake_one->position.x >= map_size.x / CELL_SIZE || snake_one->position.y < 0 ||
-      snake_one->position.y >= map_size.y / CELL_SIZE || snake_two->position.x < 0 ||
-      snake_two->position.x >= map_size.x / CELL_SIZE || snake_two->position.y < 0 ||
-      snake_two->position.y >= map_size.y / CELL_SIZE) {
+    snake_one->position.y >= map_size.y / CELL_SIZE || snake_two->position.x < 0 ||
+    snake_two->position.x >= map_size.x / CELL_SIZE || snake_two->position.y < 0 ||
+    snake_two->position.y >= map_size.y / CELL_SIZE) {
     is_game_over = true;
   }
 }

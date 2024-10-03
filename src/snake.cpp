@@ -1,15 +1,15 @@
-#include "snake.h"
+#include "snake.hpp"
 
 #include "raylib.h"
 
 #include <memory>
-#include <settings.h>
+#include <settings.hpp>
 
-Snake::Snake() : Snake(1, Vector2Int{10, 10}, RIGHT, GREEN, DARKGREEN) {}
+Snake::Snake() : Snake(1, Vector2Int{ 10, 10 }, RIGHT, GREEN, DARKGREEN) {}
 
 Snake::Snake(const uint32_t length, const Vector2Int position, const Direction direction, const Color body_color,
-             const Color tail_color)
-    : body_color(body_color), tail_color(tail_color), length(length), position(position), direction(direction) {
+  const Color tail_color)
+  : body_color(body_color), tail_color(tail_color), length(length), position(position), direction(direction) {
   body = std::vector(length, position);
 }
 
@@ -69,7 +69,7 @@ bool Snake::hasCollidedWithItself() {
   return false;
 }
 
-bool Snake::hasCollidedWithSnake(const std::shared_ptr<Snake> & other) const {
+bool Snake::hasCollidedWithSnake(const std::shared_ptr<Snake>& other) const {
   auto it = other->body.begin();
   while (it != other->body.end()) {
     if (*it == body.front()) {
@@ -135,39 +135,40 @@ void Snake::render() {
       // we calculate the direction of the tail relative to the before last cell
       switch (relativeDirection(*it, *(it - 1))) {
       case UP:
-        v1 = Vector2Int{cell_x, cell_y};
-        v2 = Vector2Int{cell_x + CELL_SIZE / 2, cell_y + CELL_SIZE};
-        v3 = Vector2Int{cell_x + CELL_SIZE, cell_y};
+        v1 = Vector2Int{ cell_x, cell_y };
+        v2 = Vector2Int{ cell_x + CELL_SIZE / 2, cell_y + CELL_SIZE };
+        v3 = Vector2Int{ cell_x + CELL_SIZE, cell_y };
         break;
       case DOWN:
-        v1 = Vector2Int{cell_x, cell_y + CELL_SIZE};
-        v2 = Vector2Int{cell_x + CELL_SIZE, cell_y + CELL_SIZE};
-        v3 = Vector2Int{cell_x + CELL_SIZE / 2, cell_y};
+        v1 = Vector2Int{ cell_x, cell_y + CELL_SIZE };
+        v2 = Vector2Int{ cell_x + CELL_SIZE, cell_y + CELL_SIZE };
+        v3 = Vector2Int{ cell_x + CELL_SIZE / 2, cell_y };
         break;
       case LEFT:
-        v1 = Vector2Int{cell_x, cell_y};
-        v2 = Vector2Int{cell_x, cell_y + CELL_SIZE};
-        v3 = Vector2Int{cell_x + CELL_SIZE, cell_y + CELL_SIZE / 2};
+        v1 = Vector2Int{ cell_x, cell_y };
+        v2 = Vector2Int{ cell_x, cell_y + CELL_SIZE };
+        v3 = Vector2Int{ cell_x + CELL_SIZE, cell_y + CELL_SIZE / 2 };
         break;
       case RIGHT:
-        v1 = Vector2Int{cell_x + CELL_SIZE, cell_y};
-        v2 = Vector2Int{cell_x, cell_y + CELL_SIZE / 2};
-        v3 = Vector2Int{cell_x + CELL_SIZE, cell_y + CELL_SIZE};
+        v1 = Vector2Int{ cell_x + CELL_SIZE, cell_y };
+        v2 = Vector2Int{ cell_x, cell_y + CELL_SIZE / 2 };
+        v3 = Vector2Int{ cell_x + CELL_SIZE, cell_y + CELL_SIZE };
         break;
       default:;
       }
 
       DrawTriangle(static_cast<Vector2>(v1), static_cast<Vector2>(v2), static_cast<Vector2>(v3), tail_color);
-    } else if (it == body.end() - 2) {
-      // we calculate the direction of the tail relative to the before last cell, to correctly place the gradient
+    }
+    else if (it == body.end() - 2) {
+   // we calculate the direction of the tail relative to the before last cell, to correctly place the gradient
       if (const Direction d1 = relativeDirection(*it, *(it + 1)); d1 > DOWN)
         DrawRectangleGradientH(cell_x, cell_y, CELL_SIZE, CELL_SIZE, d1 == LEFT ? tail_color : body_color,
-                               d1 == LEFT ? body_color : tail_color);
+          d1 == LEFT ? body_color : tail_color);
       else
         DrawRectangleGradientV(cell_x, cell_y, CELL_SIZE, CELL_SIZE, d1 == UP ? tail_color : body_color,
-                               d1 == UP ? tail_color : body_color);
+          d1 == UP ? tail_color : body_color);
 
-      // how would you make it so that the gradient is always in the direction of the tail & the body?
+// how would you make it so that the gradient is always in the direction of the tail & the body?
     }
     // body
     else {
