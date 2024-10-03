@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11) # FetchContent is available in 3.11+
-project(pp_snake)
+project(snake_game)
 
 # Dependencies
 set(RAYLIB_VERSION 5.0)
@@ -22,9 +22,10 @@ endif()
 
 # Our Project
 
-add_executable(${PROJECT_NAME} src/main.cpp
-        src/snake.cpp
-        src/game.cpp)
+add_executable(
+         ${PROJECT_NAME} src/main.cpp
+        src/ball.cpp
+        )
 
 #set(raylib_VERBOSE 1)
 target_include_directories(${PROJECT_NAME} PUBLIC include)
