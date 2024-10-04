@@ -89,10 +89,10 @@ int main() {
 ```cpp
 // default initialization
 int x;
-intx *x2 = new int;
+int *x2 = new int;
 
 // direct initialization 
-int y{}
+int y{};
 int *y2 = new int{};
 int *y3 = new int();
 ```
