@@ -19,71 +19,25 @@ void Snake::turn(const Direction new_direction) {
   if (new_direction == NONE)
     return;
 
-  // avoids going back on itself
-  if (!((new_direction ^ direction) >> 1)) {
-    return;
-  }
+  // avoid going back on itself
 
   direction = new_direction;
 }
 
 void Snake::move() {
-  switch (direction) {
-  case UP:
-    position.y -= 1;
-    break;
-  case DOWN:
-    position.y += 1;
-    break;
-  case LEFT:
-    position.x -= 1;
-    break;
-  case RIGHT:
-    position.x += 1;
-    break;
-  default:
-    break;
-  }
-
-  for (uint32_t i = length - 1; i > 0; i--) {
-    body[i] = body[i - 1];
-  }
-
-  body[0] = position;
+    // move the snake's head in the current direction we're facing
 }
 
 void Snake::grow() {
-  length++;
-
-  const Vector2Int &last = body.back();
-
-  body.emplace_back(last.x, last.y);
+    // add a new cell to the end of the body
 }
 
 bool Snake::hasCollidedWithItself() const {
-  auto it = body.begin();
-  while (it != body.end()) {
-    if (it != body.begin() && *it == body.front()) {
-      return true;
-    }
-
-    ++it;
-  }
-
-  return false;
+    // has the snake's head collided with any of its body cells?
 }
 
 bool Snake::hasCollidedWithSnake(const std::shared_ptr<Snake> &other) const {
-  auto it = other->body.begin();
-  while (it != other->body.end()) {
-    if (*it == body.front()) {
-      return true;
-    }
-
-    ++it;
-  }
-
-  return false;
+    // has the snake's head collided with the other snake's body?
 }
 
 void Snake::reset(const uint32_t length, const Vector2Int &position, const Direction direction) {
@@ -154,7 +108,7 @@ void Snake::render() {
     const auto cell_x = it->x * CELL_SIZE;
     const auto cell_y = it->y * CELL_SIZE;
 
-    DrawRectangle(cell_x, cell_y, CELL_SIZE, CELL_SIZE, body_color);
+    // draw each cell of the snake's body
 
     ++it;
   }

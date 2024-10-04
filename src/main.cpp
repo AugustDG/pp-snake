@@ -14,12 +14,7 @@ int main() {
   const auto initial_map_size = Vector2Int(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
   Game game{BASE_MOVE_TIME, initial_map_size};
 
-  if (GameSaver::hasSaveGame(SAVE_GAME_FILENAME)) {
-    GameSaver::getInstance().loadGame(SAVE_GAME_FILENAME, &game);
-  } else {
-    // if we have a save game, the snakes will be loaded from the save game
-    game.createSnakes();
-  }
+  // load the game if it exists
 
   while (!WindowShouldClose()) {
     BeginDrawing();
