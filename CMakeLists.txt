@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.11) # FetchContent is available in 3.11+
 project(game)
+set(CMAKE_CXX_STANDARD 17)
 
 # Our Project
 add_executable(${PROJECT_NAME} src/main.cpp)
