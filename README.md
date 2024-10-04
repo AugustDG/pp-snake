@@ -1,6 +1,26 @@
 # IEEE Advanced C/C++ Workshop
+
+# Objectives
+<aside>❓
+C++ development is a very large and we don’t claim to be experts, nor are we gonna cover EVERYTHING about the language.
+</aside>
+
+**Our aim today is :** 
+
+- Cover advanced topics of cpp such as
+    - CMake
+    - Special keywords in c++ that will make your life easier and faster (auto, constexpr, etc…)
+    - Vectors vs C arrays
+    - Smart pointers vs c-pointers
+    - Debugging with core files (GDB)
+- Use the topics covered to make a simple game
+- Have FUN doing it!
 ## Installation
 Make sure to install all build dependencies:
+Use the master branch to install the dependencies.  
+```shell
+git checkout master
+```
 ### Linux
 ```shell
 sudo apt install build-essential cmake libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev -y
@@ -23,31 +43,16 @@ If you don’t have Homebrew installed, you can install it by opening the Termin
 ```
 This will install Homebrew. Follow the prompts during installation.
 
-Step 2: Install CMake using Homebrew
+2.  Install CMake using Homebrew
 Once Homebrew is installed, open the Terminal and run the following command to install CMake:
 ```shell
 brew install cmake
 ```
 
-# Objectives
+2. Run CMake: `cmake --build build .`
+3. Build: `cmake --build build --config Debug` or `cmake --build build --config Release`
+4. Run the Game: `./build/Debug/pp_snake.exe` or `./build/Release/pp_snake.exe` 
 
-<aside>
-❓
-
-C++ development is a very large and we don’t claim to be experts, nor are we gonna cover EVERYTHING about the language.
-
-</aside>
-
-**Our aim today is :** 
-
-- Cover advanced topics of cpp such as
-    - CMake
-    - Special keywords in c++ that will make your life easier and faster (auto, constexpr, etc…)
-    - Vectors vs C arrays
-    - Smart pointers vs c-pointers
-    - Debugging with core files (GDB)
-- Use the topics covered to make a simple game
-- Have FUN doing it!
 
 # Section 1 : Concepts
 
