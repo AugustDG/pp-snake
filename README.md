@@ -516,3 +516,230 @@ You can go one step further by using `emplace_back` when constructing objects di
 std::vector<std::string> my_vector;
 my_vector.emplace_back("Directly placed string");  // No copying, no moving; the string is constructed in place.
 ```
+# Section 2 : Building
+
+> C++ is a compiled language
+> 
+
+**From source code to machine code**
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/4a58a8f9-adf4-4950-892d-de228d10e2da/90253ae1-d162-48af-bb4d-d5d4e628aa73/image.png)
+
+### **What is CMake and Why Use It?**
+
+Introduction to build systems and CMake’s role.
+
+### Example without using CMake
+
+```bash
+g++ main.cpp Person.cpp -o Hello
+```
+
+This command compiles two source files (`main.cpp` and `Person.cpp`) and links them into a single executable (`Hello`).
+
+<aside>
+❓
+
+**What happens when you have 10 or more classes referencing each other?**
+
+- **Dependency Management**:
+    - If one of the classes changes, you'd need to recompile only the relevant parts of the project manually.
+    - Pain in the A**
+
+**The manual build command might work fine on Linux with `g++`, but what if you are sharing your code with Windows or MacOS user?**
+
+</aside>
+
+### How are these issues solved?
+
+- Makefile (Linux)
+- Ninja build system (linux)
+- IDE built in solution (Visual Studio Windows)
+    - Problem is you’re trapped
+- CMake
+
+### **Cross-Platform Development with CMake**
+
+CMake solves many of these issues:
+
+- **Automates Compilation and Linking**: CMake automatically detects which files need to be compiled and how they should be linked, saving you from manually managing large numbers of files.
+- **Handles Dependencies**: If a single file is updated, CMake only recompiles the necessary parts of the project instead of everything.
+- **Cross-Platform Builds**: CMake generates platform-specific build files, allowing you to target Windows, macOS, Linux, and more without modifying the core project structure. For example:
+    - On Linux, CMake can generate `Makefiles`.
+    - On Windows, CMake can generate Visual Studio project files.
+    - On macOS, CMake can generate Xcode project files.
+
+**Additional reason to learn**
+
+- Any big project you’ll work on/use uses cmake
+- It does legitemately make things
+- When you’re not using your computer
+- Wide spread tooling support
+
+### **Basic CMake Structure**
+
+- Explanation of `CMakeLists.txt` structure
+- Basic commands (`cmake_minimum_required`, `project`, `add_executable`)
+
+```makefile
+# Specify the minimum CMake version required
+# Newer version may introduce new features
+cmake_minimum_required(VERSION 3.11)
+
+# Define the project name and language (C, C++, etc.)
+project(game)
+
+# Specify an executable target and its source files
+add_executable(
+${PROJECT_NAME} main.cpp)
+```
+
+The project name is an identifier your project
+
+### Build
+
+```makefile
+cmake -B build 
+cd build
+make 
+```
+
+The `-B` option tells CMake to specify an **output build directory**. In this case, the directory is named `build`. CMake will create the directory (if it doesn't already exist) and place all generated build files in this directory.
+
+- **Why a build dir?**
+    - This helps keep your source directory clean because all the build-related files are kept separate in the `build` directory.
+
+### Importing Libraries with CMake
+
+```cpp
+# Dependencies
+set(RAYLIB_VERSION 5.0)
+find_package(raylib ${RAYLIB_VERSION} QUIET) # QUIET or REQUIRED
+if (NOT raylib_FOUND) # If there's none, fetch and build raylib
+    include(FetchContent)
+    FetchContent_Declare(
+            raylib
+            DOWNLOAD_EXTRACT_TIMESTAMP OFF
+            URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
+    )
+    FetchContent_GetProperties(raylib)
+    if (NOT raylib_POPULATED) # Have we downloaded raylib yet?
+        set(FETCHCONTENT_QUIET NO)
+        FetchContent_MakeAvailable(raylib)
+
+        set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
+    endif ()
+endif ()
+
+# Our Project
+add_executable(${PROJECT_NAME} src/main.cpp)
+
+#set(raylib_VERBOSE 1)
+target_link_libraries(${PROJECT_NAME} raylib)
+
+# Web Configurations
+if (${PLATFORM} STREQUAL "Web")
+    set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html") # Tell Emscripten to build an example.html file.
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s GL_ENABLE_GET_PROC_ADDRESS=1")
+endif ()
+
+# Checks if OSX and links appropriate frameworks (Only required on MacOS)
+if (APPLE)
+    target_link_libraries(${PROJECT_NAME} "-framework IOKit")
+    target_link_libraries(${PROJECT_NAME} "-framework Cocoa")
+    target_link_libraries(${PROJECT_NAME} "-framework OpenGL")
+endif ()
+```
+
+### Introduction to raylib and Game Loops
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/4a58a8f9-adf4-4950-892d-de228d10e2da/743ea815-2e8a-40f9-9313-000688dd2d2c/image.png)
+
+```cpp
+// src/main.cpp
+const int screenWidth = 1600;
+const int screenHeight = 900;
+
+InitWindow(screenWidth, screenHeight, "IEEE C++ Workshop!");
+SetTargetFPS(60);
+while (!WindowShouldClose()) {
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+    // Where our game logic will go 
+    DrawRectangle(350, 250, 100, 100, RED);
+    DrawText("Hello, Snake!", 10, 10, 20, BLACK);
+    EndDrawing();
+}
+CloseWindow();
+```
+
+- **`InitWindow(int width, int height, const char *title)`**
+    - Initializes and opens a window with the specified dimensions and title.
+    - Sets up the rendering context.
+- **`SetTargetFPS(int fps)`**
+    - Sets the target frame rate for the game.
+    - Helps to control the game's speed and resource usage.
+- **`while (!WindowShouldClose())`**
+    - The main game loop continues until the window is closed.
+    - `WindowShouldClose()` checks if the user has requested to close the window (e.g., by clicking the close button or pressing `Escape`).
+- **`BeginDrawing()` and `EndDrawing()`**
+    - Marks the beginning and end of the drawing phase each frame.
+    - All rendering code goes between these two functions.
+- **`ClearBackground(Color color)`**
+    - Clears the screen with the specified background color before drawing new frames.
+- **`CloseWindow()`**
+    - Closes the window and releases resources allocated by Raylib.
+
+### Public and Private Include
+
+```cpp
+// include/settings.h
+#pragma once
+
+#include <cstdint>
+
+constexpr uint32_t DEFAULT_WINDOW_WIDTH = 1600;
+constexpr uint32_t DEFAULT_WINDOW_HEIGHT = 900;
+```
+
+```cpp
+// src/main.cpp
+InitWindow(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, "IEEE C++ Workshop!");
+```
+
+```cpp
+// CMakeList.txt
+add_executable(${PROJECT_NAME} src/main.cpp)
+
+target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_include_directories(${PROJECT_NAME} PRIVATE src/include)
+target_link_libraries(${PROJECT_NAME} raylib)
+```
+
+All our private includes goes in **`src/include/*`**  
+
+```cpp
+//src/include/
+```
+
+# Section 3
+
+- Initializes the window and sets the frame rate.
+- Enters the main game loop, which does three key things:
+    1. **Update**: Checks for user input, updates the game state (e.g., snake movement).
+    2. **Render**: Draws the game on the screen (snakes, apples, etc.).
+    3. **Cleanup**: Handles the end of the game, and if the player hits a key, restarts.
+
+### Snake Logic
+
+- **Movement**: Each snake consists of a body made up of segments, and the head moves in the direction the player has selected.
+- **Growth**: When a snake eats an apple, it grows by adding a new segment to its body.
+- **Collision**: The snake can collide with itself, other snakes, or the edges of the game map. If a collision occurs, the game ends.
+- **Resetting**: When the game ends, the snakes are reset to their starting positions.
+
+### Game Logic
+
+- **Initialization**: Initializes the snakes at specific positions on the game map, with set colors and directions.
+- **Input Handling**: Detects key presses for both Player 1 (W, A, S, D) and Player 2 (arrow keys) to control their respective snakes' movements.
+- **State Update**: Each frame, the snakes move in the direction they're currently facing. It also handles collisions, score updates, and checks for game over conditions.
+- **Rendering**: This part of the code draws the snakes, apples, and "Game Over" screen using Raylib.
